@@ -33,6 +33,7 @@ import android.util.Log;
 import android.widget.Toast;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBarActivity;
+import android.content.SharedPreferences;
 
 public class HTTPFunctions extends Fragment {
   private SharedPreferences sharedPref;
@@ -362,6 +363,7 @@ public class HTTPFunctions extends Fragment {
       try {
         Log.d("callback","Executing callback!");
         try {
+          // Might try a lambda ... http://www.drdobbs.com/jvm/lambda-expressions-in-java-8/240166764?pgno=2
           this.callbackFunc.call(j);
         }
         catch (Exception e) {
