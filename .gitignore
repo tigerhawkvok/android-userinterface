@@ -71,3 +71,12 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
+
+# Temp Files from emacs
+\#*
+\#*\#
+*.\#*
+*~
+        
+CONFIG.php
+errors/
