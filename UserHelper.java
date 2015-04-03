@@ -46,6 +46,11 @@ public class UserHelper extends HTTPFunctions {
             this.ENDPOINT_TARGET = null;
         }
     }
+  
+  public Userhandler(Context c, String endpointUri) {
+    UserHelper(c);
+    this.setEndpoint(endpointUri);
+  }
 
     public void setContext(Context c) {
         this.base_c = c;
@@ -184,7 +189,11 @@ public class UserHelper extends HTTPFunctions {
         // If the false return asks for phone verification ...
     }
 
+  @Override
     public void handleCallback(JSONObject j) {
+    /***
+     * Override the HTTPFunctions handleCallback to parse the JSON
+     ***/
         try {
             String action = j.getString("action");
             switch (action) {
@@ -259,6 +268,15 @@ public class UserHelper extends HTTPFunctions {
         args += "&app_version=" + this.getAppVersion();
         return args;
     }
+  
+  
+  public void verifyPhone() {
+    /***
+     * Use a popupwindow / viewinflater to show an overlay 
+     * and verify the text message sent to the user.
+     ***/
+  }
+  
 
     public String getRandom(int length) {
         Random r = new Random();
