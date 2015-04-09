@@ -1,4 +1,4 @@
-package com.velociraptorsystems.userInterface;
+package com.velociraptorsystems.winelist;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -13,6 +13,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.Callable;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -35,24 +36,49 @@ import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBarActivity;
 import android.content.SharedPreferences;
 
-public class HTTPFunctions extends Fragment {
+public class HTTPFunctions2 {
   private SharedPreferences sharedPref;
   private static final String PREFS_NAME = "storedPrefs";
-  private static final String ENDPOINT = "endpointTargetUri";
+    String ENDPOINT_TARGET;
+    private static final String ENDPOINT = "endpointTargetUri";
   String DEFAULT_ARGS = "";
   int DEFAULT_START = 0;
   int DEFAULT_STEP = 10;
   Activity ref;
   SwipeRefreshLayout swipeLayout = null;
+    Context baseContext = null;
+    String creator;
+    Checker asyncChecker;
   
   public void setRefActivity(Activity a) {
     this.ref = a;
   }
   
-  public void setSwipeRefreshLayout(SwipeRefreshLayout s) {
+  public void setSwipeLayout(SwipeRefreshLayout s) {
     this.swipeLayout = s;
   }
-  
+
+    protected  SwipeRefreshLayout getSwipeLayout() {
+        return this.swipeLayout;
+    }
+
+    public void setAsyncChecker (Checker ac) {
+        this.asyncChecker = ac;
+    }
+
+    protected Checker getAsyncChecker() {
+        if (this.asyncChecker == null) {
+            setAsyncChecker(new Checker(getContext(),getSwipeLayout()));
+        }
+        return this.asyncChecker;
+    }
+
+    protected Context getContext() {
+        return this.baseContext;
+    }
+    public void setContext(Context c) {
+        this.baseContext = c;
+    }
   
   public void unsetDefaultArgs() {
     DEFAULT_ARGS = "";
@@ -94,7 +120,7 @@ public class HTTPFunctions extends Fragment {
         if(!this.isConnectedToInternet(c)) {
             return false;
         }
-        Checker async = new Checker(c,this.swipeLayout);
+        Checker async = getAsyncChecker();
         async.setEndpoint(target);
         async.execute(args);
         return true;
@@ -106,7 +132,7 @@ public class HTTPFunctions extends Fragment {
         if(!this.isConnectedToInternet(c)) {
             return false;
         }
-        Checker async = new Checker(c,this.swipeLayout);
+        Checker async = getAsyncChecker();
         async.execute(args);
         return true;
     }
@@ -174,7 +200,7 @@ public class HTTPFunctions extends Fragment {
   }
 
   
-  private class Checker extends AsyncTask<String,Void,Boolean>{
+  protected class Checker extends AsyncTask<String,Void,Boolean>{
     Context c;
     SwipeRefreshLayout swipeLayout;
     Boolean finished = false;
@@ -212,10 +238,10 @@ public class HTTPFunctions extends Fragment {
       String m;
       
       try {
-        if (this.finished) {
-          this.onPostExecute(this.finished,"");
-          return true;
-        }
+//        if (this.finished) {
+//          this.onPostExecute(this.finished,"");
+//          return true;
+//        }
         URL u = new URL (ENDPOINT);
         HttpURLConnection huc =  (HttpURLConnection) u.openConnection();
         huc.setRequestMethod("POST");
@@ -358,24 +384,9 @@ public class HTTPFunctions extends Fragment {
         }
       return null;
     }
-    protected void callBack(JSONObject j) {
+    public void callBack(JSONObject j) {
       // Based on the passed action, do different things
-      try {
-        Log.d("callback","Executing callback!");
-        try {
-          // Might try a lambda ... http://www.drdobbs.com/jvm/lambda-expressions-in-java-8/240166764?pgno=2
-          this.callbackFunc.call(j);
-        }
-        catch (Exception e) {
-          Log.e("Exception","Callback function exception");
-          e.printStackTrace();
-        }
-      } catch (JSONException e) {
-        // TODO Auto-generated catch block
-        UiThread.toast(c, "Callback Exception", Toast.LENGTH_LONG);
-        Log.e("Exception","General callback exception");
-        e.printStackTrace();
-      }
+      Log.w("callbackError","No callback was overriden; this may lead to unexpected behaviour");
     }
   }
   

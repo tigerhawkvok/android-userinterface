@@ -1,4 +1,4 @@
-package com.velociraptorsystems.userInterface;
+package com.velociraptorsystems.winelist;
 
 /**
  * Created by Philip on 2015-03-27.
@@ -10,18 +10,23 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.util.Base64;
 import android.util.Log;
+import android.widget.EditText;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Random;
-import com.velociraptorsystems.userInterface.*;
+import java.util.regex.PatternSyntaxException;
+
+import com.afollestad.materialdialogs.MaterialDialog;
+import com.velociraptorsystems.winelist.*;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class UserHelper extends HTTPFunctions {
+public class UserHelper  extends HTTPFunctions2 {
     private String email = null;
     private SharedPreferences sharedPref;
     private Context base_c;
@@ -46,19 +51,30 @@ public class UserHelper extends HTTPFunctions {
             this.ENDPOINT_TARGET = null;
         }
     }
-  
-  public Userhandler(Context c, String endpointUri) {
-    UserHelper(c);
-    this.setEndpoint(endpointUri);
-  }
+
+    public UserHelper(Context c, String endpointUri) {
+        this.setContext(c);
+
+        this.sharedPref = c.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        try {
+            this.email = sharedPref.getString(USERNAME,null);
+            this.ENDPOINT_TARGET = sharedPref.getString(ENDPOINT,null);
+        }
+        catch (Exception e) {
+            this.email = null;
+            this.ENDPOINT_TARGET = null;
+        }
+        this.setEndpoint(endpointUri);
+    }
 
     public void setContext(Context c) {
         this.base_c = c;
     }
 
-    public Context getContext() {
+    protected Context getContext() {
         return this.base_c;
     }
+
 
     public void setEndpoint(String uri) {
 
@@ -173,6 +189,154 @@ public class UserHelper extends HTTPFunctions {
         return version;
     }
 
+    public void doQuery(String args) {
+        HTTPFunctions2 h = new HTTPFunctions2();
+        HTTPFunctions2.Checker async = new Checker(getContext(), getSwipeLayout()) {
+            @Override
+            public void callBack(JSONObject j) {
+                handleCallback(j);
+            }
+        };
+        h.setAsyncChecker(async);
+        h.doGenericQuery(getContext(),getEndpoint(),args);
+    }
+
+    public void showUserLoginPrompt() throws NullPointerException {
+        /***
+         * Based off
+         * https://github.com/afollestad/material-dialogs#input-dialogs
+         ***/
+        final Context a = this.getContext();
+        if (a == null) {
+            throw(new NullPointerException("Invalid context for UserHelper. Set the context first before calling showUserLoginPrompt()"));
+        }
+        String title, body;
+        try {
+            title = a.getResources().getString(R.string.user_login_title);
+        }
+        catch (Exception e) {
+            title = "Please log in";
+        }
+        try {
+            body = a.getResources().getString(R.string.user_login_body);
+        }
+        catch (Exception e) {
+            body = "Please enter your login credentials";
+        }
+
+        // Build the view
+
+
+        new MaterialDialog.Builder(a)
+                .title(title)
+                .content(body)
+                //.input(usernameHint,usernamePrefill,loginCallback)
+                //.input(passwordHint,passwordPrefill,loginCallback)
+                .customView(R.layout.login_existing_user,true)
+                .callback(new MaterialDialog.ButtonCallback() {
+                    @Override
+                    public void onPositive(MaterialDialog dialog) {
+                        // Stuff and things
+                        EditText userField = (EditText) dialog.findViewById(R.id.username_field);
+                        String username = userField.getText().toString();
+                        if (!isValidEmail(username)) {
+                            userField.setError(a.getString(R.string.username_bad_text));
+                            userField.requestFocus();
+                            return;
+                        }
+                        EditText passField = (EditText) dialog.findViewById(R.id.password_field);
+                        String password = passField.getText().toString();
+                        if (!isValidPassword(password,a)) {
+                            passField.setError(a.getString(R.string.password_bad_password) + " at least " + a.getString(R.string.password_min_length) + " characters long.");
+                            passField.requestFocus();
+                            return;
+                        }
+                        Log.d("userHelperLoginPrompt","Got "+username+" and "+password);
+                        dialog.dismiss();
+                    }
+                    @Override
+                    public void onNegative(MaterialDialog dialog) {
+                        dialog.dismiss();
+                    }
+                    @Override
+                    public void onNeutral(MaterialDialog dialog) {
+                        dialog.dismiss();
+                        showUserRegisterPrompt();
+                    }
+                })
+                .autoDismiss(false)
+                .positiveText(R.string.user_login_positive)
+                .negativeText(R.string.user_login_negative)
+                .neutralText(R.string.user_login_neutral)
+                .show();
+    }
+
+    public void showUserRegisterPrompt() throws NullPointerException{
+        /***
+         * Based off
+         * https://github.com/afollestad/material-dialogs#input-dialogs
+         ***/
+        final Context a = this.getContext();
+        String title, body;
+        String firstNameHint, firstNamePrefill, lastNameHint, lastNamePrefill, handleHint, handlePrefill, phoneHint, phonePrefill;
+        if (a == null) {
+            throw(new NullPointerException("Invalid context for UserHelper. Set the context first before calling showUserLoginPrompt()"));
+        }
+        try {
+            title = a.getResources().getString(R.string.user_login_title);
+        }
+        catch (Exception e) {
+            title = "Please log in";
+        }
+        try {
+            body = a.getResources().getString(R.string.user_login_body);
+        }
+        catch (Exception e) {
+            body = "Please enter your login credentials";
+        }
+// Build the view
+
+
+        new MaterialDialog.Builder(a)
+                .title(title)
+                .content(body)
+                .customView(R.layout.login_new_user, true)
+                .callback(new MaterialDialog.ButtonCallback() {
+                    @Override
+                    public void onPositive(MaterialDialog dialog) {
+                        // Stuff and things
+                        EditText userField = (EditText) dialog.findViewById(R.id.username_field);
+                        String username = userField.getText().toString();
+                        if (!isValidEmail(username)) {
+                            userField.setError(a.getString(R.string.username_bad_text));
+                            userField.requestFocus();
+                            return;
+                        }
+                        EditText passField = (EditText) dialog.findViewById(R.id.password_field);
+                        String password = passField.getText().toString();
+                        if (!isValidPassword(password, a)) {
+                            passField.setError(a.getString(R.string.password_bad_password) + " at least " + a.getString(R.string.password_min_length) + " characters long.");
+                            passField.requestFocus();
+                            return;
+                        }
+                        Log.d("userHelperLoginPrompt", "Got " + username + " and " + password);
+                        setUser(username);
+                        registerNewDevice(password);
+                        dialog.dismiss();
+                    }
+
+                    @Override
+                    public void onNegative(MaterialDialog dialog) {
+                        dialog.dismiss();
+                    }
+                })
+                .autoDismiss(false)
+                .positiveText(R.string.user_login_create)
+                .negativeText(R.string.user_login_negative)
+                .show();
+    }
+
+
     public void registerNewUser(String firstName, String lastName, String handle, String password, int phoneNumber) {
 
         // If the false return asks for totp ...
@@ -184,16 +348,19 @@ public class UserHelper extends HTTPFunctions {
     }
 
 
-    public void registerNewDevice() {
+    public void registerNewDevice(String password) {
         // If the false return asks for totp ...
         // If the false return asks for phone verification ...
+        String args = getAppRegistrationString(password);
+        this.doQuery(args);
+
     }
 
-  @Override
     public void handleCallback(JSONObject j) {
-    /***
-     * Override the HTTPFunctions handleCallback to parse the JSON
-     ***/
+        /***
+         * The primary callback handler.
+         * Delegate back to child functions when complex, but handle the case-by-case returns.
+         ***/
         try {
             String action = j.getString("action");
             switch (action) {
@@ -268,15 +435,6 @@ public class UserHelper extends HTTPFunctions {
         args += "&app_version=" + this.getAppVersion();
         return args;
     }
-  
-  
-  public void verifyPhone() {
-    /***
-     * Use a popupwindow / viewinflater to show an overlay 
-     * and verify the text message sent to the user.
-     ***/
-  }
-  
 
     public String getRandom(int length) {
         Random r = new Random();
@@ -342,5 +500,38 @@ public class UserHelper extends HTTPFunctions {
         CharSequence target;
         target = Integer.toString(phone);
         return isValidPhone(target);
+    }
+
+    public final static boolean isValidPassword (CharSequence target, Context c) {
+        if (target.toString().isEmpty()) {
+            return false;
+        }
+        int minLength = 8;
+        try {
+            minLength = Integer.parseInt(c.getResources().getString(R.string.password_min_length));
+        } catch (Exception e) {
+            // Do nothing
+        }
+        if (target.length() < minLength) {
+            return false;
+        }
+        int thresholdLength = 22;
+        try {
+            thresholdLength = Integer.parseInt(c.getString(R.string.password_threshold_length));
+        }
+        catch (Exception e) {
+            // Do nothing
+        }
+        if (target.length() >= thresholdLength) {
+            return true;
+        }
+        boolean foundMatch;
+        try {
+            foundMatch = target.toString().matches(c.getResources().getString(R.string.password_regex_pattern));
+        }
+        catch (PatternSyntaxException e) {
+            foundMatch = false;
+        }
+        return foundMatch;
     }
 }

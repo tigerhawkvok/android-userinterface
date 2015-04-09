@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+  <string name="user_login_title">Please log in</string>
+  <string name="user_login_body">Please enter your login credentials</string>
+  <string name="username_hint">Username:</string>
+  <string name="username_prefill">jsmith@example.com</string>
+  <string name="password_hint">Password:</string>
+  <string name="password_prefill">Complex, unique password</string>
+  <string name="user_login_positive">Login</string>
+  <string name="user_login_negative">Cancel</string>
+  <string name="user_login_neutral">Create Account</string>
+  <string name="password_bad_password">Please input a valid password</string>
+  <string name="username_bad_text">Please enter a valid email</string>
+  <string name="password_min_length">8</string>
+  <string name="password_regex_pattern">^(?:(?=^.*$)((?=.*\\d)|(?=.*\\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$)$</string>
+  <string name="password_threshold_length">22</string>
+  <string name="user_login_create">Create User</string>
+  <string name="phone_prefill">314-159-2658</string>
+  <string name="phone_hint">Phone Number:</string>
+  <string name="firstname_hint">First Name:</string>
+  <string name="firstname_prefill">Erwin</string>
+  <string name="lastname_hint">Last name:</string>
+  <string name="lastname_prefill">Schrödinger</string>
+  <string name="handle_hint">Display Name:</string>
+  <string name="handle_prefill">catsInBoxes34</string>
+</resources>
