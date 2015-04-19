@@ -1,4 +1,4 @@
-package com.velociraptorsystems.winelist;
+package com.velociraptorsystems.userInterface;
 
 /**
  * Created by Philip on 2015-03-27.

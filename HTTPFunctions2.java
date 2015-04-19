@@ -1,4 +1,4 @@
-package com.velociraptorsystems.winelist;
+package com.velociraptorsystems.userInterface;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -22,11 +22,13 @@ import org.json.JSONObject;
 import android.app.Activity;
 import android.app.Fragment;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.Signature;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Looper;
 import android.util.Base64;
@@ -51,7 +53,9 @@ public class HTTPFunctions2 {
     Checker asyncChecker;
   
   public void setRefActivity(Activity a) {
-    this.ref = a;
+
+      this.ref = a;
+      this.setContext(a);
   }
   
   public void setSwipeLayout(SwipeRefreshLayout s) {
@@ -77,7 +81,9 @@ public class HTTPFunctions2 {
         return this.baseContext;
     }
     public void setContext(Context c) {
+
         this.baseContext = c;
+        this.sharedPref = c.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
     }
   
   public void unsetDefaultArgs() {
@@ -97,7 +103,7 @@ public class HTTPFunctions2 {
             return this.ENDPOINT_TARGET;
         }
         Context c = this.getContext();
-        this.sharedPref = c.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+
         try {
             this.ENDPOINT_TARGET = sharedPref.getString(ENDPOINT,null);
         }
@@ -199,7 +205,13 @@ public class HTTPFunctions2 {
     return buf.toString();
   }
 
-  
+
+    public void openUrl(String url) {
+        Intent i = new Intent(Intent.ACTION_VIEW);
+        i.setData(Uri.parse(url));
+        this.getContext().startActivity(i);
+    }
+
   protected class Checker extends AsyncTask<String,Void,Boolean>{
     Context c;
     SwipeRefreshLayout swipeLayout;
